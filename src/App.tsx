@@ -3,10 +3,11 @@ import reactLogo from './assets/react.svg'
 import viteLogo from '/vite.svg'
 import './App.css'
 import mqtt from 'precompiled-mqtt'
-import Stream from './Stream'
+import Stream from './components/Stream'
 
 const App: FC = () => {
     const [message, setMessage] = useState('')
+    const [send, setSend] = useState('')
 
     useEffect(() => {
         const ha = 'mqtt:homeassistant:1884/'
@@ -14,6 +15,11 @@ const App: FC = () => {
         const option = {
             username: 'mqtt',
             password: '1234',
+            keepalive: 60,
+            clean: true,
+            reconnectPeriod: 300000,
+            connectTimeout: 30000,
+            rejectUnauthorized: false,
         }
 
         const topic = 'birdfeeder'
@@ -34,15 +40,25 @@ const App: FC = () => {
             console.log('DISCONNECTED from broker')
         })
 
-        client.subscribe(topic)
+        client.subscribe(
+            topic,
+            {
+                qos: 2,
+            },
+            (error) => {
+                if (error) {
+                    console.log('MQTT Subscribe to topics error', error.message)
+                    return
+                }
+            }
+        )
         const updateMqqt = () => {
-            client.on('message', function (_topic, message) {
-                console.log(message.toString())
+            client.on('message', function (topic, message) {
+                console.log(topic, message.toString())
                 setMessage(message.toString())
             })
         }
         updateMqqt()
-        client.end()
     }, [])
 
     const publish = () => {
@@ -51,12 +67,17 @@ const App: FC = () => {
         const option = {
             username: 'mqtt',
             password: '1234',
+            keepalive: 60,
+            clean: true,
+            reconnectPeriod: 300000,
+            connectTimeout: 30000,
+            rejectUnauthorized: false,
         }
 
         const topic = 'birdfeeder'
 
         const client = mqtt.connect(ha, option)
-        client.publish(topic, 'React App')
+        client.publish(topic, send, { qos: 2 })
     }
 
     return (
@@ -76,9 +97,15 @@ const App: FC = () => {
             <Stream />
             <div className="card">
                 <span>{message ? message : 'No Message'}</span>
-                {/* <button onClick={connect}>Connect</button> */}
                 <button onClick={publish}>Feed</button>
-                {/* <button onClick={end}>End Connection</button> */}
+
+                <div className="input">
+                    <input
+                        type="text"
+                        onChange={(e) => setSend(e.target.value)}
+                        placeholder="Please enter a message to display."
+                    />
+                </div>
             </div>
         </>
     )
