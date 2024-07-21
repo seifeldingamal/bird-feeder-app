@@ -10,7 +10,7 @@ const App: FC = () => {
     const [send, setSend] = useState('')
 
     useEffect(() => {
-        const ha = 'mqtt:homeassistant:1884/'
+        const ha = 'mqtt:hafeeder:1884/'
 
         const option = {
             username: 'mqtt',
@@ -62,7 +62,7 @@ const App: FC = () => {
     }, [])
 
     const publish = () => {
-        const ha = 'mqtt:homeassistant:1884/'
+        const ha = 'mqtt:hafeeder:1884/'
 
         const option = {
             username: 'mqtt',
